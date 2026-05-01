@@ -22,6 +22,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'mobile_number',
+        'profile_picture',
         'password',
     ];
 
@@ -46,5 +48,19 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    protected $appends = ['profile_picture_url'];
+
+    public function getProfilePictureUrlAttribute(): ?string
+    {
+        if (! $this->profile_picture) {
+            return null;
+        }
+
+        $requestBaseUrl = request()?->getSchemeAndHttpHost();
+        $baseUrl = $requestBaseUrl ?: rtrim(config('app.url'), '/');
+
+        return rtrim($baseUrl, '/') . '/user_pictures/' . $this->profile_picture;
     }
 }

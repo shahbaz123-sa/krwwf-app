@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">erpApp</string>
-    <string name="title_activity_main">erpApp</string>
+    <string name="app_name">KRWWF</string>
+    <string name="title_activity_main">KRWWF</string>
     <string name="package_name">com.shahbaz.erpapp</string>
     <string name="custom_url_scheme">com.shahbaz.erpapp</string>
 </resources>

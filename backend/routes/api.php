@@ -13,6 +13,9 @@ Route::prefix('auth')->group(function (): void {
     });
 });
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::middleware('auth:sanctum')->group(function (): void {
+    Route::get('/user', fn (Request $request) => $request->user());
+    Route::put('/user', [AuthController::class, 'updateProfile']);
+    Route::post('/user/picture', [AuthController::class, 'uploadPicture']);
 });
+
