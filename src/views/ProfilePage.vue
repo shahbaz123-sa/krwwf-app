@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import AppNavbar from "@/components/AppNavbar.vue";
 import { fetchCurrentUser, logout, type AuthUser } from "@/services/auth";
@@ -9,8 +9,31 @@ const router = useRouter();
 const pageContentId = "profile-content";
 const loading = ref(true);
 const user = ref<AuthUser | null>(null);
-const profileImageInput = ref<HTMLInputElement | null>(null);
 const { isDark } = useTheme();
+
+const defaultUser = {
+  name: "Shahbaz Ahmad",
+  title: "Software Engineer",
+  mobile_number: "+92 300 1234567",
+  email: "shahbazahmad@email.com",
+  location: "Lahore, Pakistan",
+  member_id: "KRWWF-2024-1587",
+  profile_picture_url: null,
+  profession: "Software Engineer",
+  company: "TechSoft Solutions (Pvt.) Ltd.",
+  experience: "3+ Years",
+  skills: "Laravel, Vue.js, JavaScript, PHP, MySQL",
+  role_in_community: "Volunteer",
+  blood_group: "O+",
+  interests: "Welfare, Education, IT Support",
+  recent_activity: [
+    { title: "Participated in Blood Donation Camp", date: "May 18, 2024" },
+    { title: "Joined KRWWF Professionals Group", date: "April 22, 2024" },
+    { title: "Contributed to Education Support Program", date: "March 10, 2024" }
+  ]
+};
+
+const displayUser = computed(() => ({ ...defaultUser, ...(user.value || {}) }));
 
 onMounted(async () => {
   try {
@@ -23,30 +46,21 @@ onMounted(async () => {
   }
 });
 
-async function goToEditProfile(): Promise<void> {
+const goToEditProfile = async (): Promise<void> => {
   await router.push("/profile/edit");
+};
+
+function onMessage() {
+  // simple stub for UI action
+  void window.alert(`Message ${displayUser.value.name}`);
 }
 
-function handleProfileImageChange(event: Event): void {
-  const target = event.target;
-  if (!(target instanceof HTMLInputElement)) return;
-  // You can add logic to upload the image here
-  // For now, just log the file
-  if (target.files && target.files[0]) {
-    // Example: uploadProfileImage(target.files[0]);
-    // For now, just log
-    console.log('Selected file:', target.files[0]);
-  }
+function onCall() {
+  void window.alert(`Call ${displayUser.value.mobile_number}`);
 }
 
-function openProfileImagePicker(): void {
-  profileImageInput.value?.click();
-}
-
-function captureProfileImage() {
-  // You can add logic to capture from camera here
-  // For now, just log
-  console.log('Capture from camera clicked');
+function onConnect() {
+  void window.alert(`Connect request sent to ${displayUser.value.name}`);
 }
 </script>
 
@@ -55,41 +69,84 @@ function captureProfileImage() {
     <AppNavbar title="Profile" :content-id="pageContentId" />
 
     <ion-content class="ion-padding profile-content">
+      <div class="profile-hero">
+        <div class="hero-decor"></div>
+      </div>
+
       <div class="profile-card">
         <div class="profile-theme-badge">{{ isDark ? '🌙 Dark' : '☀️ Light' }}</div>
-        <div class="profile-picture-wrap">
-          <img
-            v-if="user && user.profile_picture_url"
-            :src="user.profile_picture_url"
-            alt="Profile picture"
-            class="profile-picture"
-          />
-          <div v-else class="profile-picture profile-picture--placeholder">
-            {{ user?.name?.charAt(0)?.toUpperCase() || "U" }}
+
+        <div class="profile-top">
+          <div class="avatar-wrap">
+            <img
+              v-if="displayUser.profile_picture_url"
+              :src="displayUser.profile_picture_url"
+              alt="Profile picture"
+              class="profile-picture"
+            />
+            <div v-else class="profile-picture profile-picture--placeholder">
+              {{ displayUser.name.charAt(0).toUpperCase() }}
+            </div>
+            <div class="avatar-badge">✔️</div>
+          </div>
+
+          <div class="profile-meta">
+            <h2 class="profile-name">{{ displayUser.name }}</h2>
+            <div class="profile-sub">{{ displayUser.title }}</div>
+            <div class="profile-status">Active Member</div>
+            <div class="profile-badges">
+              <span class="badge">Proud Khanzada</span>
+            </div>
           </div>
         </div>
-        <div class="profile-picture-actions">
-          <ion-button size="small" @click="openProfileImagePicker">Upload</ion-button>
-          <ion-button size="small" @click="captureProfileImage">Capture</ion-button>
-          <input
-            ref="profileImageInput"
-            type="file"
-            accept="image/*"
-            style="display: none;"
-            @change="handleProfileImageChange"
-          />
+
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-row"><strong>Phone</strong><div class="info-val">{{ displayUser.mobile_number }}</div></div>
+            <div class="info-row"><strong>Email</strong><div class="info-val">{{ displayUser.email }}</div></div>
+          </div>
+          <div class="info-card">
+            <div class="info-row"><strong>Location</strong><div class="info-val">{{ displayUser.location }}</div></div>
+            <div class="info-row"><strong>Member ID</strong><div class="info-val">{{ displayUser.member_id }}</div></div>
+          </div>
         </div>
-        <h2 class="profile-title">Your Profile</h2>
 
-        <template v-if="!loading && user">
-          <p class="profile-row"><strong>Name:</strong> {{ user.name }}</p>
-          <p class="profile-row"><strong>Mobile:</strong> {{ user.mobile_number || "Not set" }}</p>
-          <p class="profile-row"><strong>Email:</strong> {{ user.email || "Not set" }}</p>
+        <div class="action-row">
+          <button class="action-btn" @click="onMessage">Message</button>
+          <button class="action-btn" @click="onCall">Call</button>
+          <button class="action-btn action-btn--primary" @click="onConnect">Connect</button>
+          <button class="action-btn" @click="goToEditProfile">Edit</button>
+        </div>
 
-          <ion-button expand="block" @click="goToEditProfile">Edit Profile</ion-button>
-        </template>
+        <section class="section">
+          <div class="section-head">Professional Details <a class="view-more">View More</a></div>
+          <div class="detail-grid">
+            <div class="detail-row"><span class="label">Profession</span><span class="val">{{ displayUser.profession }}</span></div>
+            <div class="detail-row"><span class="label">Company</span><span class="val">{{ displayUser.company }}</span></div>
+            <div class="detail-row"><span class="label">Experience</span><span class="val">{{ displayUser.experience }}</span></div>
+            <div class="detail-row"><span class="label">Skills</span><span class="val">{{ displayUser.skills }}</span></div>
+          </div>
+        </section>
 
-        <p v-else>Loading profile...</p>
+        <section class="section">
+          <div class="section-head">Community & Interests <a class="view-more">View More</a></div>
+          <div class="three-grid">
+            <div class="pill"><strong>Role in Community</strong><div class="pill-sub">{{ displayUser.role_in_community }}</div></div>
+            <div class="pill"><strong>Blood Group</strong><div class="pill-sub">{{ displayUser.blood_group }}</div></div>
+            <div class="pill"><strong>Interests</strong><div class="pill-sub">{{ displayUser.interests }}</div></div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">Recent Activity <a class="view-more">View All</a></div>
+          <ul class="recent-list">
+            <li v-for="(act, idx) in displayUser.recent_activity" :key="idx" class="recent-item">
+              <div class="recent-title">{{ act.title }}</div>
+              <div class="recent-date">{{ act.date }}</div>
+            </li>
+          </ul>
+        </section>
+
       </div>
     </ion-content>
   </ion-page>
@@ -152,12 +209,84 @@ function captureProfileImage() {
   font-size: 28px;
 }
 
-.profile-picture-actions {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 12px;
+.profile-hero {
+  height: 160px;
+  background: linear-gradient(180deg, #0b6b3a 0%, #0f7a47 100%);
+  position: relative;
 }
+
+.hero-decor {
+  position: absolute;
+  right: 16px;
+  bottom: -12px;
+  width: 120px;
+  height: 120px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px;
+}
+
+.profile-card {
+  position: relative;
+  max-width: 920px;
+  margin: -56px auto 24px;
+  background: var(--app-surface-color);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+}
+
+.profile-top {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+
+.avatar-wrap { position: relative; }
+
+.avatar-badge {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+  font-size: 12px;
+}
+
+.profile-meta { flex: 1; }
+
+.profile-name { margin: 0; font-size: 20px; }
+.profile-sub { color: var(--app-muted-text-color); margin-top: 4px; }
+.profile-status { margin-top: 6px; font-size: 13px; color: #2f9a66; }
+.profile-badges { margin-top: 8px; }
+.badge { background: #f3f7f4; color:#155d36; padding: 6px 10px; border-radius: 18px; font-size: 12px; }
+
+.info-grid { display:flex; gap:12px; margin-top: 14px; }
+.info-card { flex:1; background:var(--app-surface-2, #fff); padding:12px; border-radius:8px; }
+.info-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(0,0,0,0.04); }
+.info-val { color:var(--ion-text-color); }
+
+.action-row { display:flex; gap:10px; margin:16px 0; }
+.action-btn { flex:1; padding:10px 12px; border-radius:10px; border:1px solid rgba(0,0,0,0.06); background:transparent; }
+.action-btn--primary { background:#0b6b3a; color:#fff; border-color:transparent; }
+
+.section { margin-top: 12px; }
+.section-head { font-weight:600; display:flex; justify-content:space-between; align-items:center; }
+.view-more { font-size:12px; color:#888; text-decoration:underline; }
+.detail-grid { margin-top:8px; border-radius:8px; background:var(--app-surface-2, #fff); padding:10px; }
+.detail-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(0,0,0,0.04); }
+.label { color:#666; }
+.val { font-weight:600; }
+
+.three-grid { display:flex; gap:10px; margin-top:10px; }
+.pill { flex:1; background:var(--app-surface-2, #fff); padding:10px; border-radius:8px; }
+.pill-sub { margin-top:6px; color:#555 }
+
+.recent-list { list-style:none; padding:0; margin:8px 0 0 0; }
+.recent-item { padding:10px 0; border-bottom:1px solid rgba(0,0,0,0.04); display:flex; justify-content:space-between; }
+.recent-title { color:var(--ion-text-color); }
+.recent-date { color:#999; font-size:12px; }
 
 .profile-row {
   margin: 10px 0;

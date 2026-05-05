@@ -11,7 +11,6 @@ import {
 import { personCircleOutline, gridOutline, logOutOutline } from "ionicons/icons";
 import { useRouter } from "vue-router";
 import { logout } from "@/services/auth";
-import { useTheme } from "@/composables/useTheme";
 
 type Props = {
   title: string;
@@ -22,7 +21,6 @@ const props = defineProps<Props>();
 
 const router = useRouter();
 const ionRouter = useIonRouter();
-const { isDark } = useTheme();
 const activePath = computed(() => router.currentRoute.value.path);
 
 async function navigateTo(name: "Dashboard" | "Profile", path: "/dashboard" | "/profile"): Promise<void> {
@@ -144,4 +142,6 @@ async function handleLogout(): Promise<void> {
 .bottom-nav__btn--active ion-label {
   color: var(--ion-color-primary);
 }
+
+/* no app-level theme fallback - theme control is in EditProfilePage */
 </style>

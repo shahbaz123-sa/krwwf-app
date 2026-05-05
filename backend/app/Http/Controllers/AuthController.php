@@ -18,6 +18,7 @@ class AuthController extends Controller
             'country_code'    => ['required', 'regex:/^\+[0-9]{1,4}$/'],
             'mobile_number'   => ['required', 'regex:/^[0-9]{6,15}$/'],
             'email'           => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
+            'date_of_birth'   => ['nullable', 'date'],
             'password'        => ['required', 'string', 'min:8', 'confirmed'],
             'profile_picture' => ['nullable', 'image', 'max:4096'],
         ]);
@@ -39,10 +40,20 @@ class AuthController extends Controller
         $user = User::create([
             'name'            => $validated['name'],
             'email'           => $validated['email'] ?? null,
+            'date_of_birth'   => $validated['date_of_birth'] ?? null,
             'mobile_number'   => $fullMobile,
             'profile_picture' => $pictureName,
             'password'        => $validated['password'],
         ]);
+
+        // Assign a member_id like KRWWF-mmyy-0001 (sequential per month-year)
+        $now = now();
+        $prefix = sprintf('KRWWF-%02d%02d-', $now->month, $now->year % 100);
+        // Count existing users for this month-year to increment sequence
+        $count = User::where('member_id', 'like', $prefix . '%')->count();
+        $sequence = str_pad((string) ($count + 1), 4, '0', STR_PAD_LEFT);
+        $user->member_id = $prefix . $sequence;
+        $user->save();
 
         $token = $user->createToken('mobile-app-token')->plainTextToken;
 
@@ -102,6 +113,16 @@ class AuthController extends Controller
             'mobile_number' => ['nullable', 'regex:/^\+[0-9]{7,19}$/', Rule::unique('users', 'mobile_number')->ignore($user->id)],
             'email'         => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password'      => ['nullable', 'string', 'min:8', 'confirmed'],
+            // additional profile fields allowed in separate section saves
+            'location' => ['nullable', 'string', 'max:255'],
+            'profession' => ['nullable', 'string', 'max:255'],
+            'company' => ['nullable', 'string', 'max:255'],
+            'experience' => ['nullable', 'string', 'max:100'],
+            'skills' => ['nullable', 'string'],
+            'role_in_community' => ['nullable', 'string', 'max:255'],
+            'blood_group' => ['nullable', 'string', 'max:10'],
+            'interests' => ['nullable', 'string'],
+            'date_of_birth' => ['nullable', 'date'],
         ]);
 
         if (array_key_exists('name', $validated)) {
@@ -118,6 +139,42 @@ class AuthController extends Controller
 
         if (! empty($validated['password'])) {
             $user->password = $validated['password'];
+        }
+
+        if (array_key_exists('location', $validated)) {
+            $user->location = $validated['location'];
+        }
+
+        if (array_key_exists('profession', $validated)) {
+            $user->profession = $validated['profession'];
+        }
+
+        if (array_key_exists('company', $validated)) {
+            $user->company = $validated['company'];
+        }
+
+        if (array_key_exists('experience', $validated)) {
+            $user->experience = $validated['experience'];
+        }
+
+        if (array_key_exists('skills', $validated)) {
+            $user->skills = $validated['skills'];
+        }
+
+        if (array_key_exists('role_in_community', $validated)) {
+            $user->role_in_community = $validated['role_in_community'];
+        }
+
+        if (array_key_exists('blood_group', $validated)) {
+            $user->blood_group = $validated['blood_group'];
+        }
+
+        if (array_key_exists('interests', $validated)) {
+            $user->interests = $validated['interests'];
+        }
+
+        if (array_key_exists('date_of_birth', $validated)) {
+            $user->date_of_birth = $validated['date_of_birth'];
         }
 
         $user->save();

@@ -25,6 +25,16 @@ class User extends Authenticatable
         'mobile_number',
         'profile_picture',
         'password',
+        'member_id',
+        'location',
+        'date_of_birth',
+        'profession',
+        'company',
+        'experience',
+        'skills',
+        'role_in_community',
+        'blood_group',
+        'interests',
     ];
 
     /**
@@ -51,6 +61,11 @@ class User extends Authenticatable
     }
 
     protected $appends = ['profile_picture_url'];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     public function getProfilePictureUrlAttribute(): ?string
     {

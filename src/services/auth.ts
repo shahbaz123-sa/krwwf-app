@@ -9,6 +9,16 @@ export type AuthUser = {
   mobile_number: string | null;
   profile_picture: string | null;
   profile_picture_url: string | null;
+  member_id?: string | null;
+  location?: string | null;
+  profession?: string | null;
+  company?: string | null;
+  experience?: string | null;
+  skills?: string | null;
+  role_in_community?: string | null;
+  blood_group?: string | null;
+  interests?: string | null;
+  date_of_birth?: string | null;
 };
 
 type LoginPayload = {
@@ -27,6 +37,7 @@ type RegisterPayload = {
   password: string;
   password_confirmation: string;
   profile_picture?: File;
+  date_of_birth?: string;
 };
 
 type AuthResponse = {
@@ -38,8 +49,18 @@ type UpdateProfilePayload = {
   name?: string;
   mobile_number?: string;
   email?: string | null;
+  location?: string | null;
   password?: string;
   password_confirmation?: string;
+  // additional profile fields
+  profession?: string | null;
+  company?: string | null;
+  experience?: string | null;
+  skills?: string | null;
+  role_in_community?: string | null;
+  blood_group?: string | null;
+  interests?: string | null;
+  date_of_birth?: string | null;
 };
 
 export function getToken(): string | null {
@@ -64,6 +85,10 @@ export async function register(payload: RegisterPayload): Promise<AuthUser> {
 
   if (payload.profile_picture) {
     formData.append("profile_picture", payload.profile_picture);
+  }
+
+  if (payload.date_of_birth) {
+    formData.append("date_of_birth", payload.date_of_birth);
   }
 
   const response = await api.post<AuthResponse>("/auth/register", formData, {
