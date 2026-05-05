@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, ref } from "vue";
+import { reactive, ref, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 import { Capacitor } from "@capacitor/core";
@@ -16,6 +16,9 @@ const errorMessage = ref("");
 const showLoginPassword = ref(false);
 const showRegisterPassword = ref(false);
 const showRegisterPasswordConfirmation = ref(false);
+const rememberMe = ref(true);
+
+const logoSrc = "/favicon.png";
 
 const loginForm = reactive({
   mobile_phone: "",
@@ -35,6 +38,18 @@ const registerForm = reactive({
 const loginCountry = ref("PK");
 const registerCountry = ref("PK");
 const registerCameraInput = ref(null);
+
+// Utility to detect mobile device
+function isMobileDevice() {
+  return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+}
+
+// Webcam modal state
+const showWebcamModal = ref(false);
+const webcamStream = ref(null);
+const webcamVideoRef = ref(null);
+const webcamCanvasRef = ref(null);
+const webcamError = ref("");
 
 async function submitLogin(event) {
   loading.value = true;
@@ -192,6 +207,54 @@ function openRegisterGalleryPicker() {
   }
 }
 
+function openWebcamModal() {
+  showWebcamModal.value = true;
+  webcamError.value = "";
+  // Start webcam
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then((stream) => {
+      webcamStream.value = stream;
+      if (webcamVideoRef.value) {
+        webcamVideoRef.value.srcObject = stream;
+        webcamVideoRef.value.play();
+      }
+    })
+    .catch((err) => {
+      webcamError.value = "Could not access webcam: " + err.message;
+    });
+}
+
+function closeWebcamModal() {
+  showWebcamModal.value = false;
+  if (webcamStream.value) {
+    webcamStream.value.getTracks().forEach((track) => track.stop());
+    webcamStream.value = null;
+  }
+}
+
+function captureWebcamPhoto() {
+  if (!webcamVideoRef.value || !webcamCanvasRef.value) return;
+  const video = webcamVideoRef.value;
+  const canvas = webcamCanvasRef.value;
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  canvas.toBlob((blob) => {
+    if (blob) {
+      const file = new File([blob], `register_${Date.now()}.jpg`, { type: blob.type });
+      registerForm.profile_picture = file;
+      closeWebcamModal();
+    }
+  }, "image/jpeg", 0.92);
+}
+
+onBeforeUnmount(() => {
+  if (webcamStream.value) {
+    webcamStream.value.getTracks().forEach((track) => track.stop());
+  }
+});
+
 async function captureRegisterFromCamera() {
   const isNative = Capacitor.isNativePlatform();
   errorMessage.value = "";
@@ -213,23 +276,30 @@ async function captureRegisterFromCamera() {
           return;
         }
       }
-    }
 
-    const photo = await Camera.getPhoto({
-      source: CameraSource.Camera,
-      resultType: CameraResultType.Uri,
-      quality: 85,
-    });
+      const photo = await Camera.getPhoto({
+        source: CameraSource.Camera,
+        resultType: CameraResultType.Uri,
+        quality: 85,
+      });
 
-    if (!photo.webPath) {
+      if (!photo.webPath) {
+        return;
+      }
+
+      const captured = await webPathToFile(photo.webPath, `register_${Date.now()}.jpg`);
+      registerForm.profile_picture = captured;
+    } else if (!isMobileDevice()) {
+      // Desktop/laptop: open webcam modal
+      openWebcamModal();
+      return;
+    } else {
+      // Browser fallback where native camera plugin is unavailable.
+      registerCameraInput.value?.click?.();
       return;
     }
-
-    const captured = await webPathToFile(photo.webPath, `register_${Date.now()}.jpg`);
-    registerForm.profile_picture = captured;
   } catch {
     if (!isNative) {
-      // Browser fallback where native camera plugin is unavailable.
       registerCameraInput.value?.click?.();
       return;
     }
@@ -243,47 +313,62 @@ async function webPathToFile(webPath, filename) {
   const blob = await response.blob();
   return new File([blob], filename, { type: blob.type || "image/jpeg" });
 }
+
+// Sentence case utility
+function toSentenceCase(str) {
+  return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+}
+
+function handleNameInput(event) {
+  const value = event.target.value;
+  const sentenceCased = toSentenceCase(value);
+  registerForm.name = sentenceCased;
+}
+
+function handleEmailInput(event, formType) {
+  const value = event.target.value;
+  if (formType === 'login') {
+    loginForm.email = value.toLowerCase();
+  } else if (formType === 'register') {
+    registerForm.email = value.toLowerCase();
+  }
+}
 </script>
 
 <template>
   <ion-page>
     <ion-content class="ion-padding auth-content">
       <div class="auth-wrapper" :class="`auth-wrapper--${mode}`">
-        <div class="auth-hero" />
-        <h2>KRWWF</h2>
-        <p>Please login or create an account.</p>
-
-        <div class="mode-switch" role="tablist" aria-label="Auth mode">
-          <button
-            type="button"
-            class="mode-switch__btn"
-            :class="{ 'mode-switch__btn--active': mode === 'login' }"
-            @click="mode = 'login'"
-          >
-            Login
-          </button>
-          <button
-            type="button"
-            class="mode-switch__btn"
-            :class="{ 'mode-switch__btn--active': mode === 'register' }"
-            @click="mode = 'register'"
-          >
-            Register
-          </button>
+        <div class="auth-cover" aria-hidden="true">
+          <div class="brand-row">
+<!--            <img class="brand-logo" :src="logoSrc" alt="KRWWF" />-->
+            <div class="brand-text">
+<!--              <div class="brand-name">KRWWF</div>-->
+<!--              <div class="brand-subtitle">Hi, Welcome Back</div>-->
+            </div>
+          </div>
         </div>
 
         <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
 
         <form v-if="mode === 'login'" @submit.prevent="submitLogin" class="form-block">
-          <div class="login-method">
-            <label class="login-method__item">
-              <input v-model="loginMethod" type="radio" value="mobile" />
-              Mobile
-            </label>
-            <label class="login-method__item">
-              <input v-model="loginMethod" type="radio" value="email" />
+          <div class="pill-switch pill-switch--compact" role="tablist" aria-label="Login method">
+            <button
+              type="button"
+              class="pill-switch__btn"
+              :class="{ 'pill-switch__btn--active': loginMethod === 'email' }"
+              @click="loginMethod = 'email'"
+            >
               Email
-            </label>
+            </button>
+            <button
+              type="button"
+              class="pill-switch__btn"
+              :class="{ 'pill-switch__btn--active': loginMethod === 'mobile' }"
+              @click="loginMethod = 'mobile'"
+            >
+              Phone Number
+            </button>
           </div>
 
           <template v-if="loginMethod === 'mobile'">
@@ -295,7 +380,7 @@ async function webPathToFile(webPath, filename) {
                 default-country="PK"
                 :auto-default-country="false"
                 :dropdown-options="{ showDialCodeInSelection: true, showDialCodeInList: true, showFlags: true, showSearchBox: true }"
-                :input-options="{ placeholder: 'Type mobile number', showDialCode: false }"
+                :input-options="{ placeholder: 'Type mobile number', showDialCode: false, type: 'tel' }"
                 @on-input="handleLoginPhoneInput"
                 valid-characters-only
               />
@@ -304,7 +389,7 @@ async function webPathToFile(webPath, filename) {
 
           <ion-item v-else>
             <ion-label position="stacked">Email</ion-label>
-            <input v-model="loginForm.email" name="email" class="native-input" type="email" required />
+            <input v-model="loginForm.email" name="email" class="native-input" type="email" required @input="handleEmailInput($event, 'login')" />
           </ion-item>
 
           <ion-item>
@@ -328,16 +413,39 @@ async function webPathToFile(webPath, filename) {
             </div>
           </ion-item>
 
-          <ion-button expand="block" type="submit" :disabled="loading">
+          <div class="login-meta">
+            <label class="remember">
+              <input v-model="rememberMe" type="checkbox" />
+              <span>Remember me</span>
+            </label>
+            <button type="button" class="link-btn" @click.prevent>
+              Forgot Password?
+            </button>
+          </div>
+
+          <ion-button class="primary-cta" expand="block" type="submit" :disabled="loading">
             {{ loading ? "Please wait..." : "Login" }}
           </ion-button>
+
+          <div class="auth-alt">
+            <span class="auth-alt__text">Don’t have an account?</span>
+            <button type="button" class="auth-alt__link" @click="mode = 'register'">Register</button>
+          </div>
         </form>
 
-        <form v-else @submit.prevent="submitRegister" class="form-block">
-          <ion-item>
-            <ion-label position="stacked">Full Name</ion-label>
-            <input v-model="registerForm.name" name="name" class="native-input" required />
-          </ion-item>
+        <template v-if="mode === 'register'">
+          <div class="form-scroll-wrapper">
+            <form @submit.prevent="submitRegister" class="form-block">
+              <ion-item>
+                <ion-label position="stacked">Full Name</ion-label>
+                <input
+                  v-model="registerForm.name"
+                  name="name"
+                  class="native-input"
+                  required
+                  @input="handleNameInput"
+                />
+              </ion-item>
 
           <ion-item class="phone-item" lines="none">
             <ion-label position="stacked">Mobile Number</ion-label>
@@ -347,7 +455,7 @@ async function webPathToFile(webPath, filename) {
               default-country="PK"
               :auto-default-country="false"
               :dropdown-options="{ showDialCodeInSelection: true, showDialCodeInList: true, showFlags: true, showSearchBox: true }"
-              :input-options="{ placeholder: 'Type mobile number', showDialCode: false }"
+              :input-options="{ placeholder: 'Type mobile number', showDialCode: false, type: 'tel' }"
               @on-input="handleRegisterPhoneInput"
               valid-characters-only
             />
@@ -355,7 +463,7 @@ async function webPathToFile(webPath, filename) {
 
           <ion-item>
             <ion-label position="stacked">Email (Optional)</ion-label>
-            <input v-model="registerForm.email" name="email" class="native-input" type="email" />
+            <input v-model="registerForm.email" name="email" class="native-input" type="email" @input="handleEmailInput($event, 'register')" />
           </ion-item>
 
           <ion-item>
@@ -435,16 +543,73 @@ async function webPathToFile(webPath, filename) {
             </div>
           </ion-item>
 
-          <ion-button expand="block" type="submit" :disabled="loading">
-            {{ loading ? "Please wait..." : "Create Account" }}
-          </ion-button>
-        </form>
+              <ion-button class="primary-cta" expand="block" type="submit" :disabled="loading">
+                {{ loading ? "Please wait..." : "Create Account" }}
+              </ion-button>
+
+              <div class="auth-alt">
+                <span class="auth-alt__text">Already have an account?</span>
+                <button type="button" class="auth-alt__link" @click="mode = 'login'">Login</button>
+              </div>
+            </form>
+          </div>
+        </template>
+      </div>
+      <!-- Webcam Modal for Desktop/Laptop -->
+      <div v-if="showWebcamModal" class="webcam-modal">
+        <div class="webcam-modal__backdrop" @click="closeWebcamModal"></div>
+        <div class="webcam-modal__content">
+          <h3>Capture Photo from Webcam</h3>
+          <video ref="webcamVideoRef" autoplay playsinline style="width: 100%; max-width: 320px; border-radius: 8px; background: #222;"></video>
+          <canvas ref="webcamCanvasRef" style="display: none;"></canvas>
+          <div v-if="webcamError" class="error-text">{{ webcamError }}</div>
+          <div class="webcam-modal__actions">
+            <button @click="captureWebcamPhoto" class="picture-action-btn">Take Photo</button>
+            <button @click="closeWebcamModal" class="picture-action-btn">Cancel</button>
+          </div>
+        </div>
       </div>
     </ion-content>
   </ion-page>
 </template>
 
 <style scoped>
+
+/* Remove border from VueTelInput inside phone-item for seamless look */
+.phone-item,
+.phone-item :deep(.vti),
+.phone-item :deep(.vti__input),
+.phone-item :deep(.vti__input-wrapper),
+.phone-item :deep(.vti__selection),
+.phone-item :deep(.vti__dropdown),
+.phone-item :deep(.vti__input:focus),
+.phone-item > div,
+.phone-item input {
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent !important;
+}
+
+.phone-item {
+  --border-color: transparent !important;
+  --border-width: 0 !important;
+  --inner-border-color: transparent !important;
+  --inner-border-width: 0 !important;
+  --inner-box-shadow: none !important;
+  --highlight-height: 0 !important;
+}
+
+/* Remove border from ion-item in phone-item context */
+.phone-item.ion-item,
+.phone-item[lines="none"],
+.phone-item[lines="full"],
+.phone-item[lines="inset"] {
+  border: none !important;
+  box-shadow: none !important;
+}
+
 .auth-wrapper {
   max-width: 540px;
   margin: 24px auto;
@@ -454,6 +619,110 @@ async function webPathToFile(webPath, filename) {
   padding: 18px;
   position: relative;
   overflow: visible;
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.brand-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 6px;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.brand-name {
+  font-weight: 900;
+  letter-spacing: 0.4px;
+  color: var(--ion-text-color);
+  font-size: 18px;
+}
+
+.brand-subtitle {
+  margin-top: 2px;
+  color: var(--app-muted-text-color);
+  font-size: 26px;
+  font-weight: 900;
+}
+
+/* Cover/header area (replaces the flat green panel from the reference design)
+   Uses the already-attached cover image (/auth-bg.png). */
+.auth-cover {
+  width: 100%;
+  min-height: 150px;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
+  background-image: url('/auth-bg.png');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* soft overlay to keep text readable regardless of image */
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.72) 0%,
+    rgba(255, 255, 255, 0.35) 55%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  pointer-events: none;
+}
+
+.auth-cover .brand-row {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 0;
+}
+
+/* Add scrollable wrapper for register form */
+.form-scroll-wrapper {
+  width: 100%;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 600px) {
+  .auth-wrapper {
+    max-height: 92vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .form-scroll-wrapper {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 2px;
+  }
+  .form-block {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+  }
 }
 
 .auth-wrapper::before {
@@ -490,21 +759,42 @@ async function webPathToFile(webPath, filename) {
   animation: bgShift 18s ease infinite;
 }
 
-.auth-hero {
-  width: 100%;
-  height: 170px;
-  border-radius: 14px;
-  margin-bottom: 14px;
-  background-image: url('/auth-bg.png');
-  background-size: cover;
-  background-position: center;
-  animation: heroFloat 9s ease-in-out infinite;
-}
+/* legacy hero removed in favor of .auth-cover */
 
 .form-block {
   margin-top: 16px;
   display: grid;
   gap: 10px;
+}
+
+/* Design-style pill switch (used for Login/Register and Email/Phone) */
+.pill-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: rgba(var(--ion-text-color-rgb), 0.06);
+  border-radius: 999px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.pill-switch--compact {
+  margin-top: 2px;
+}
+
+.pill-switch__btn {
+  border: 0;
+  background: transparent;
+  color: var(--ion-text-color);
+  border-radius: 999px;
+  padding: 10px 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.pill-switch__btn--active {
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+  box-shadow: 0 10px 24px rgba(var(--ion-color-primary-rgb), 0.25);
 }
 
 .picture-actions {
@@ -542,26 +832,58 @@ async function webPathToFile(webPath, filename) {
   border: 0;
 }
 
-.mode-switch {
-  margin-top: 10px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+
+.login-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 2px 0;
+}
+
+.remember {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
-}
-
-.mode-switch__btn {
-  border: 1px solid var(--app-muted-border-color);
-  background: transparent;
   color: var(--app-muted-text-color);
-  border-radius: 10px;
-  padding: 10px 12px;
+  font-size: 12px;
   font-weight: 600;
-  cursor: pointer;
 }
 
-.mode-switch__btn--active {
-  border-color: var(--ion-color-primary);
+.remember input {
+  width: 14px;
+  height: 14px;
+}
+
+.link-btn {
+  border: 0;
+  background: transparent;
   color: var(--ion-color-primary);
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Bottom inline switch (Register/Login link) like the design */
+.auth-alt {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--app-muted-text-color);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.auth-alt__link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: var(--ion-text-color);
+  font-weight: 900;
 }
 
 .error-text {
@@ -598,6 +920,14 @@ ion-item {
   border-radius: 12px;
 }
 
+.primary-cta {
+  --border-radius: 999px;
+  --box-shadow: 0 14px 28px rgba(var(--ion-color-primary-rgb), 0.2);
+  font-weight: 900;
+  text-transform: none;
+  min-height: 44px;
+}
+
 .password-field {
   width: 100%;
   display: flex;
@@ -605,6 +935,7 @@ ion-item {
   gap: 8px;
 }
 
+/* Password eye icon button styling */
 .toggle-password-btn {
   margin-left: auto;
   border: 0;
@@ -617,25 +948,15 @@ ion-item {
   cursor: pointer;
 }
 
+/* Ensure eye icon is visible in light mode */
 .toggle-password-btn ion-icon {
   font-size: 18px;
+  color: var(--ion-color-primary); /* Use primary color for visibility in light mode */
 }
 
-.login-method {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-}
-
-.login-method__item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--app-muted-text-color);
-  font-weight: 500;
-}
-
-:deep(.vti) {
+/* vue-tel-input: make it look like the other inputs and keep dropdown above */
+:deep(.vti),
+:deep(.vti__input-wrapper) {
   width: 100%;
   border: 0 !important;
   box-shadow: none !important;
@@ -646,11 +967,22 @@ ion-item {
 :deep(.vti__input) {
   flex: 1;
   min-width: 0;
+  width: 100%;
   border: 0 !important;
   background: transparent !important;
   color: var(--ion-text-color) !important;
-  font-size: 16px;
+  font: inherit;
   padding: 10px 0 8px !important;
+  box-shadow: none !important;
+}
+
+
+/* Adjust stacked label for phone input to avoid overlap */
+.phone-item ion-label[position="stacked"] {
+  margin-bottom: 0px;
+  padding-bottom: 0px;
+  z-index: 2;
+  background: transparent;
 }
 
 :deep(.vti__input:focus) {
@@ -658,11 +990,13 @@ ion-item {
   box-shadow: none !important;
 }
 
+/* Ensure dropdown trigger is clickable and visible */
 :deep(.vti__dropdown) {
   background: transparent !important;
   border: 0 !important;
   cursor: pointer;
-  pointer-events: auto;
+  pointer-events: auto !important;
+  z-index: 50 !important;
 }
 
 :deep(.vti__selection) {
@@ -681,7 +1015,7 @@ ion-item {
   border-radius: 10px;
   background: var(--app-surface-color);
   box-shadow: 0 12px 28px rgba(var(--ion-text-color-rgb), 0.18);
-  z-index: 2147483647 !important;
+  z-index: 9999 !important;
   pointer-events: auto !important;
 }
 
@@ -694,10 +1028,11 @@ ion-item {
   margin-bottom: 8px;
 }
 
+/* Ensure phone-item does not clip dropdown */
 .phone-item {
   position: relative;
-  overflow: visible;
-  z-index: 20;
+  overflow: visible !important;
+  z-index: 30;
   --border-color: transparent;
   --border-width: 0;
   --inner-border-color: transparent;
@@ -757,5 +1092,37 @@ ion-item {
   .auth-hero {
     animation: none;
   }
+}
+
+.webcam-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.webcam-modal__backdrop {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45);
+}
+.webcam-modal__content {
+  position: relative;
+  background: var(--app-surface-color, #fff);
+  border-radius: 14px;
+  padding: 24px 18px 18px 18px;
+  z-index: 2;
+  min-width: 320px;
+  max-width: 95vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.webcam-modal__actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
 }
 </style>

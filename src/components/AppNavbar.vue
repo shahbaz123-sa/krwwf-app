@@ -60,19 +60,24 @@ async function handleLogout(): Promise<void> {
     <ion-toolbar>
       <div class="bottom-nav__actions">
         <ion-button fill="clear" class="bottom-nav__btn" :class="{ 'bottom-nav__btn--active': activePath === '/dashboard' }" @click="navigateTo('Dashboard', '/dashboard')">
-          <ion-icon :icon="gridOutline" />
-          <ion-label>Dashboard</ion-label>
+          <span class="bottom-nav__btn-inner">
+            <ion-icon :icon="gridOutline" />
+            <ion-label>Dashboard</ion-label>
+          </span>
         </ion-button>
         <ion-button fill="clear" class="bottom-nav__btn" :class="{ 'bottom-nav__btn--active': activePath === '/profile' || activePath === '/profile/edit' }" @click="navigateTo('Profile', '/profile')">
-          <ion-icon :icon="personCircleOutline" />
-          <ion-label>Profile</ion-label>
+          <span class="bottom-nav__btn-inner">
+            <ion-icon :icon="personCircleOutline" />
+            <ion-label>Profile</ion-label>
+          </span>
         </ion-button>
         <ion-button fill="clear" class="bottom-nav__btn bottom-nav__btn--logout" @click="handleLogout">
-          <ion-icon :icon="logOutOutline" />
-          <ion-label>Logout</ion-label>
+          <span class="bottom-nav__btn-inner">
+            <ion-icon :icon="logOutOutline" />
+            <ion-label>Logout</ion-label>
+          </span>
         </ion-button>
       </div>
-      <div class="mode-badge">{{ isDark ? '🌙 Dark' : '☀️ Light' }}</div>
     </ion-toolbar>
   </ion-footer>
 </template>
@@ -111,6 +116,14 @@ async function handleLogout(): Promise<void> {
   color: var(--ion-text-color);
 }
 
+.bottom-nav__btn-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
 .bottom-nav__btn ion-icon {
   font-size: 20px;
 }
@@ -130,14 +143,5 @@ async function handleLogout(): Promise<void> {
 .bottom-nav__btn--active ion-icon,
 .bottom-nav__btn--active ion-label {
   color: var(--ion-color-primary);
-}
-
-.mode-badge {
-  position: absolute;
-  top: 4px;
-  right: 8px;
-  font-size: 10px;
-  color: var(--app-muted-text-color);
-  pointer-events: none;
 }
 </style>

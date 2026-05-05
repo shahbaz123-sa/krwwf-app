@@ -209,6 +209,33 @@ async function submitProfile(): Promise<void> {
 
     <ion-content class="ion-padding profile-content">
       <div class="profile-card">
+        <div class="profile-picture-wrap">
+          <img v-if="previewUrl" :src="previewUrl" class="profile-picture" alt="Profile preview" />
+          <div v-else class="profile-picture profile-picture--placeholder">
+            {{ form.name?.charAt(0)?.toUpperCase() || "U" }}
+          </div>
+        </div>
+        <div class="profile-picture-actions">
+          <ion-button size="small" @click="captureFromCamera">Capture</ion-button>
+          <ion-button size="small" @click="openGalleryPicker">Upload</ion-button>
+          <input
+            id="edit-camera-input"
+            ref="cameraInput"
+            class="visually-hidden-file-input"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            @change="handlePictureChange"
+          />
+          <input
+            id="edit-gallery-input"
+            class="visually-hidden-file-input"
+            type="file"
+            accept="image/*"
+            @change="handlePictureChange"
+          />
+        </div>
+
         <h2>Edit Profile</h2>
         <p v-if="successMessage" class="success-text">{{ successMessage }}</p>
         <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
@@ -237,37 +264,6 @@ async function submitProfile(): Promise<void> {
             <ion-label position="stacked">Email (Optional)</ion-label>
             <input v-model="form.email" class="native-input" type="email" />
           </ion-item>
-
-          <ion-item>
-            <ion-label position="stacked">Profile Picture (Optional)</ion-label>
-            <div class="picture-actions">
-              <button type="button" class="picture-action-btn" @click="captureFromCamera">
-                Capture From Camera
-              </button>
-              <button type="button" class="picture-action-btn" @click="openGalleryPicker">
-                Upload From Gallery
-              </button>
-            </div>
-            <p v-if="selectedPicture" class="picture-name">Selected: {{ selectedPicture.name }}</p>
-            <input
-              id="edit-camera-input"
-              ref="cameraInput"
-              class="visually-hidden-file-input"
-              type="file"
-              accept="image/*"
-              capture="environment"
-              @change="handlePictureChange"
-            />
-            <input
-              id="edit-gallery-input"
-              class="visually-hidden-file-input"
-              type="file"
-              accept="image/*"
-              @change="handlePictureChange"
-            />
-          </ion-item>
-
-          <img v-if="previewUrl" :src="previewUrl" class="preview-image" alt="Profile preview" />
 
           <ion-item>
             <ion-label position="stacked">New Password (Optional)</ion-label>
@@ -329,11 +325,35 @@ async function submitProfile(): Promise<void> {
   margin-top: 12px;
 }
 
-.picture-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 8px;
+.profile-picture-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 12px 0 18px;
+}
+
+.profile-picture {
+  width: 92px;
+  height: 92px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 2px solid var(--app-muted-border-color);
+}
+
+.profile-picture--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--ion-color-primary-rgb), 0.12);
+  color: var(--ion-color-primary);
+  font-weight: 700;
+  font-size: 28px;
+}
+
+.profile-picture-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
 .picture-action-btn {
@@ -375,15 +395,6 @@ async function submitProfile(): Promise<void> {
 
 .native-input:focus {
   outline: none;
-}
-
-.preview-image {
-  width: 92px;
-  height: 92px;
-  object-fit: cover;
-  border-radius: 999px;
-  border: 2px solid var(--app-muted-border-color);
-  margin: 4px auto 6px;
 }
 
 .error-text {
