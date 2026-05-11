@@ -17,7 +17,7 @@ type Props = {
   contentId: string;
 };
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 const router = useRouter();
 const ionRouter = useIonRouter();
@@ -63,16 +63,28 @@ async function handleLogout(): Promise<void> {
             <ion-label>Dashboard</ion-label>
           </span>
         </ion-button>
+        <ion-button fill="clear" class="bottom-nav__btn" :class="{ 'bottom-nav__btn--active': activePath === '/dashboard' }" @click="navigateTo('Dashboard', '/dashboard')">
+          <span class="bottom-nav__btn-inner">
+            <ion-icon :icon="gridOutline" />
+            <ion-label>Events</ion-label>
+          </span>
+        </ion-button>
+        <ion-button fill="clear" class="bottom-nav__btn" :class="{ 'bottom-nav__btn--active': activePath === '/dashboard' }" @click="navigateTo('Dashboard', '/dashboard')">
+          <span class="bottom-nav__btn-inner">
+            <ion-icon :icon="gridOutline" />
+            <ion-label>About Us</ion-label>
+          </span>
+        </ion-button>
         <ion-button fill="clear" class="bottom-nav__btn" :class="{ 'bottom-nav__btn--active': activePath === '/profile' || activePath === '/profile/edit' }" @click="navigateTo('Profile', '/profile')">
           <span class="bottom-nav__btn-inner">
             <ion-icon :icon="personCircleOutline" />
-            <ion-label>Profile</ion-label>
+            <ion-label>News</ion-label>
           </span>
         </ion-button>
         <ion-button fill="clear" class="bottom-nav__btn bottom-nav__btn--logout" @click="handleLogout">
           <span class="bottom-nav__btn-inner">
             <ion-icon :icon="logOutOutline" />
-            <ion-label>Logout</ion-label>
+            <ion-label>Contact</ion-label>
           </span>
         </ion-button>
       </div>
@@ -92,13 +104,13 @@ async function handleLogout(): Promise<void> {
 
 .bottom-nav ion-toolbar {
   --background: var(--app-surface-color);
-  --min-height: 62px;
+  --padding-bottom: env(safe-area-inset-bottom);
+  --min-height: calc(62px + env(safe-area-inset-bottom));
 }
 
 .bottom-nav__actions {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
+  grid-template-columns: repeat(5, 1fr);
   align-items: center;
   width: 100%;
 }
@@ -109,8 +121,7 @@ async function handleLogout(): Promise<void> {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  min-height: 56px;
+  min-height: 30px;
   color: var(--ion-text-color);
 }
 
@@ -123,11 +134,11 @@ async function handleLogout(): Promise<void> {
 }
 
 .bottom-nav__btn ion-icon {
-  font-size: 20px;
+  font-size: 16px;
 }
 
 .bottom-nav__btn ion-label {
-  font-size: 12px;
+  font-size: 8px;
 }
 
 .bottom-nav__btn--logout {

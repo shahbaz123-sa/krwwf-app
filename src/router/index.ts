@@ -4,12 +4,15 @@ import DashboardPage from '@/views/DashboardPage.vue';
 import HomePage from '@/views/HomePage.vue';
 import ProfilePage from '@/views/ProfilePage.vue';
 import EditProfilePage from '@/views/EditProfilePage.vue';
+import LoginPage from '@/views/LoginPage.vue';
+import RegisterPage from '@/views/RegisterPage.vue';
+import AboutPage from '@/views/AboutPage.vue';
 import { isAuthenticated } from '@/services/auth';
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/home'
+    redirect: '/dashboard'
   },
   {
     path: '/home',
@@ -21,7 +24,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/dashboard',
     name: 'Dashboard',
     component: DashboardPage,
-    meta: { requiresAuth: true },
+    // allow guests to view the dashboard as the app landing page; specific actions still require auth
   },
   {
     path: '/profile',
@@ -34,6 +37,24 @@ const routes: Array<RouteRecordRaw> = [
     name: 'EditProfile',
     component: EditProfilePage,
     meta: { requiresAuth: true },
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: LoginPage,
+    meta: { guestOnly: true },
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: RegisterPage,
+    meta: { guestOnly: true },
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: AboutPage,
+    meta: { guestOnly: true },
   }
 ]
 

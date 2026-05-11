@@ -18,6 +18,8 @@ export type AuthUser = {
   role_in_community?: string | null;
   blood_group?: string | null;
   interests?: string | null;
+  short_bio?: string | null;
+  linkedin_profile?: string | null;
   date_of_birth?: string | null;
 };
 
@@ -60,6 +62,8 @@ type UpdateProfilePayload = {
   role_in_community?: string | null;
   blood_group?: string | null;
   interests?: string | null;
+  short_bio?: string | null;
+  linkedin_profile?: string | null;
   date_of_birth?: string | null;
 };
 

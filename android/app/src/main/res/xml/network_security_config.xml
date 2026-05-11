@@ -7,7 +7,10 @@
 
     NOTE: For production you should remove this and use HTTPS.
   -->
-  <base-config cleartextTrafficPermitted="true" />
+  <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.59.189.239</domain>
+    </domain-config>
+    <base-config cleartextTrafficPermitted="false" />
 
   <!-- Allow cleartext (http://) traffic to local development hosts/IPs. -->
   <domain-config cleartextTrafficPermitted="true">

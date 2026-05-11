@@ -32,6 +32,8 @@ class User extends Authenticatable
         'company',
         'experience',
         'skills',
+        'linkedin_profile',
+        'short_bio',
         'role_in_community',
         'blood_group',
         'interests',

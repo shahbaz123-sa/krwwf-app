@@ -119,9 +119,11 @@ class AuthController extends Controller
             'company' => ['nullable', 'string', 'max:255'],
             'experience' => ['nullable', 'string', 'max:100'],
             'skills' => ['nullable', 'string'],
+            'linkedin_profile' => ['nullable', 'string', 'max:255'],
             'role_in_community' => ['nullable', 'string', 'max:255'],
             'blood_group' => ['nullable', 'string', 'max:10'],
             'interests' => ['nullable', 'string'],
+            'short_bio' => ['nullable', 'string'],
             'date_of_birth' => ['nullable', 'date'],
         ]);
 
@@ -161,6 +163,10 @@ class AuthController extends Controller
             $user->skills = $validated['skills'];
         }
 
+        if (array_key_exists('linkedin_profile', $validated)) {
+            $user->linkedin_profile = $validated['linkedin_profile'];
+        }
+
         if (array_key_exists('role_in_community', $validated)) {
             $user->role_in_community = $validated['role_in_community'];
         }
@@ -171,6 +177,10 @@ class AuthController extends Controller
 
         if (array_key_exists('interests', $validated)) {
             $user->interests = $validated['interests'];
+        }
+
+        if (array_key_exists('short_bio', $validated)) {
+            $user->short_bio = $validated['short_bio'];
         }
 
         if (array_key_exists('date_of_birth', $validated)) {
