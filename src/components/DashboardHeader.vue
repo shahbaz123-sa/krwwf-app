@@ -20,7 +20,7 @@
             Together, let's build a stronger Khanzada community.
           </div>
           <div class="dashboard-header-buttons">
-            <button class="header-btn outline" @click="$emit('login')">Log In</button>
+            <button disabled class="header-btn outline" @click="$emit('login')">Log In</button>
             <button class="header-btn solid" @click="$emit('create-account')">Create Account</button>
           </div>
         </div>

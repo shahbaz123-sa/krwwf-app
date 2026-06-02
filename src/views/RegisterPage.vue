@@ -8,7 +8,6 @@ import "vue-tel-input/vue-tel-input.css";
 import crestLogo from '@/assets/logo.png';
 import castleBg from '@/assets/castle.jpg';
 import forestFooter from '@/assets/forest-footer.png';
-import arrowBack from '@/assets/arrow-back.svg';
 
 const router = useRouter();
 const loading = ref(false);
@@ -44,6 +43,20 @@ function handleRegisterPhoneInput(_phone, phoneObject) {
   if (nextCountry) {
     registerCountry.value = nextCountry;
   }
+
+  // Keep only national number in input; dial code must come from country selector.
+  const nationalNumber = String(phoneObject?.nationalNumber || "").trim();
+  if (nationalNumber) {
+    registerForm.mobile_phone = nationalNumber;
+    return;
+  }
+
+  const raw = String(_phone || "").trim();
+  const digitsOnly = raw.replace(/[^\d+]/g, "");
+  const selectedDialCode = String(phoneObject?.countryCallingCode || "").trim();
+  if (selectedDialCode && digitsOnly.startsWith(`+${selectedDialCode}`)) {
+    registerForm.mobile_phone = digitsOnly.slice(selectedDialCode.length + 1);
+  }
 }
 async function submitRegister(event) {
   loading.value = true;
@@ -59,7 +72,7 @@ async function submitRegister(event) {
     );
     const parsedPhone = parsePhoneFields(registerForm.mobile_phone, registerCountry.value);
     if (!parsedPhone) {
-      errorMessage.value = "Please enter a valid mobile number with country code.";
+      errorMessage.value = "Please enter a valid mobile number.";
       return;
     }
     registerForm.name = name;
@@ -92,7 +105,7 @@ async function submitRegister(event) {
         <div class="cover-center">
           <img :src="crestLogo" class="crest-logo" alt="KRWWF Crest" />
           <div class="cover-title">KHANZADA</div>
-          <div class="cover-sub">WELFARE & WORKING FORUM</div>
+          <div class="cover-sub">Rajput Welfare & Waseela Foundation</div>
           <div class="cover-urdu">اتحاد، خدمت، ترقی</div>
         </div>
       </div>
@@ -108,11 +121,12 @@ async function submitRegister(event) {
             <label>Mobile Number</label>
             <VueTelInput
               v-model="registerForm.mobile_phone"
-              mode="national"
+              mode="international"
               default-country="PK"
+              :preferred-countries="['PK', 'SA', 'AE', 'US', 'GB']"
               :auto-default-country="false"
-              :dropdown-options="{ showDialCodeInSelection: false, showDialCodeInList: false, showFlags: false, showSearchBox: true }"
-              :input-options="{ placeholder: 'Mobile Number', showDialCode: false, type: 'tel' }"
+              :dropdown-options="{ showDialCodeInSelection: true, showDialCodeInList: true, showFlags: true, showSearchBox: true }"
+              :input-options="{ placeholder: '300 1234567', showDialCode: false, type: 'tel' }"
               @on-input="handleRegisterPhoneInput"
               valid-characters-only
               class="input-field phone-input"
@@ -152,7 +166,7 @@ async function submitRegister(event) {
 <style scoped>
 .auth-content {
   --background: #f4f6f9;
-  --padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  --padding-bottom: calc(32px + env(safe-area-inset-bottom));
   min-height: 100vh;
   padding: 0;
   position: relative;
@@ -160,11 +174,11 @@ async function submitRegister(event) {
 .cover-section {
   position: relative;
   width: 100%;
-  min-height: 240px;
+  min-height: 176px;
   background-size: cover;
   background-position: center;
-  border-bottom-left-radius: 32px;
-  border-bottom-right-radius: 32px;
+  border-bottom-left-radius: 22px;
+  border-bottom-right-radius: 22px;
   overflow: hidden;
   display: flex;
   align-items: flex-end;
@@ -184,41 +198,41 @@ async function submitRegister(event) {
   align-items: center;
   justify-content: flex-end;
   width: 100%;
-  padding-bottom: 18px;
+  padding-bottom: 12px;
 }
 .crest-logo {
-  width: 90px;
-  height: 90px;
-  margin-bottom: 8px;
+  width: 62px;
+  height: 62px;
+  margin-bottom: 6px;
   object-fit: contain;
 }
 .cover-title {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 900;
   color: #FFD700;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   margin-bottom: 2px;
 }
 .cover-sub {
-  font-size: 13px;
+  font-size: 11px;
   color: #fff;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.3px;
 }
 .cover-urdu {
-  font-size: 18px;
+  font-size: 14px;
   color: #fff;
   margin-top: 2px;
   font-family: "Noto Nastaliq Urdu", serif;
 }
 .form-card {
   background: #fff;
-  border-radius: 24px;
-  box-shadow: 0 4px 24px rgba(30,68,52,0.07);
-  width: calc(100% - 24px);
-  max-width: 370px;
-  margin: -60px auto 0 auto;
-  padding: 32px 22px 24px 22px;
+  border-radius: 16px;
+  box-shadow: 0 3px 14px rgba(30,68,52,0.08);
+  width: calc(100% - 14px);
+  max-width: 360px;
+  margin: -30px auto 0 auto;
+  padding: 18px 14px 14px 14px;
   position: relative;
   z-index: 10;
   display: flex;
@@ -226,22 +240,22 @@ async function submitRegister(event) {
   align-items: stretch;
 }
 .form-title {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 800;
   color: #1e4434;
   text-align: center;
 }
 .form-sub {
-  font-size: 14px;
+  font-size: 12px;
   color: #6a7c7b;
   text-align: center;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 .input-group {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 .input-group label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: #1e4434;
   margin-bottom: 4px;
@@ -252,9 +266,9 @@ async function submitRegister(event) {
   border: none;
   border-bottom: 2px solid #e0e0e0;
   background: transparent;
-  font-size: 16px;
+  font-size: 15px;
   color: #1e4434;
-  padding: 10px 0 7px 0;
+  padding: 8px 0 6px 0;
   outline: none;
   transition: border-color 0.2s;
 }
@@ -265,9 +279,14 @@ async function submitRegister(event) {
   border: none !important;
   border-bottom: 2px solid #e0e0e0 !important;
   background: transparent !important;
-  font-size: 16px !important;
+  font-size: 15px !important;
   color: #1e4434 !important;
-  padding: 10px 0 7px 0 !important;
+  padding: 8px 0 6px 0 !important;
+}
+.phone-input :deep(.vti__input-container) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .phone-input :deep(.vti__input:focus) {
   border-bottom: 2px solid #1e4434 !important;
@@ -275,18 +294,34 @@ async function submitRegister(event) {
 .phone-input :deep(.vti__selection) {
   background: transparent !important;
   border: none !important;
+  margin-right: 0 !important;
+  padding-right: 2px;
+}
+.phone-input :deep(.vti__dropdown) {
+  padding-right: 6px;
+}
+.phone-input :deep(.vti__flag) {
+  margin-right: 6px;
+}
+.phone-input :deep(.vti__country-code) {
+  margin-right: 6px;
+}
+.input-hint {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #6a7c7b;
 }
 .main-login-btn {
   width: 100%;
   background: #1e4434;
   color: #fff;
   font-weight: 800;
-  font-size: 16px;
+  font-size: 14px;
   border: none;
-  border-radius: 8px;
-  padding: 12px 0;
-  margin-top: 10px;
-  margin-bottom: 10px;
+  border-radius: 7px;
+  padding: 11px 0;
+  margin-top: 6px;
+  margin-bottom: 8px;
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -296,8 +331,8 @@ async function submitRegister(event) {
 }
 .register-row {
   text-align: center;
-  margin-top: 18px;
-  font-size: 14px;
+  margin-top: 12px;
+  font-size: 12px;
   color: #6a7c7b;
 }
 .register-link {
@@ -308,7 +343,7 @@ async function submitRegister(event) {
   cursor: pointer;
   text-decoration: underline;
   margin-left: 4px;
-  font-size: 16px;
+  font-size: 13px;
   letter-spacing: 0.5px;
   transition: color 0.2s;
 }
@@ -320,8 +355,8 @@ async function submitRegister(event) {
   z-index: 20;
   width: 100%;
   pointer-events: none;
-  height: 120px;
-  margin-top: 18px;
+  height: 250px;
+  margin-top: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -329,6 +364,9 @@ async function submitRegister(event) {
 }
 .footer-bg {
   width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: bottom center;
   display: block;
   position: absolute;
   left: 0;
@@ -339,7 +377,7 @@ async function submitRegister(event) {
   position: relative;
   z-index: 2;
   width: 100%;
-  padding: 0 16px 36px;
+  padding: 0 12px 26px;
   text-align: center;
   pointer-events: auto;
   display: flex;
@@ -347,14 +385,14 @@ async function submitRegister(event) {
   align-items: center;
 }
 .footer-title {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 800;
   color: #F9B233;
   margin-bottom: 2px;
   letter-spacing: 0.5px;
 }
 .footer-desc {
-  font-size: 13px;
+  font-size: 11px;
   color: #fff;
   font-weight: 500;
 }
@@ -382,20 +420,37 @@ async function submitRegister(event) {
 .back-btn:hover {
   background: #f4f6f9;
 }
-@media (max-width: 600px) {
+@media (max-width: 340px) {
   .form-card {
-    width: calc(100% - 12px);
-    max-width: 98vw;
-    padding: 22px 6vw 18px 6vw;
+    width: calc(100% - 10px);
+    padding: 16px 10px 12px 10px;
+  }
+  .cover-title {
+    font-size: 19px;
+  }
+  .cover-sub {
+    font-size: 10px;
+  }
+  .input-field,
+  .phone-input :deep(.vti__input) {
+    font-size: 14px !important;
+  }
+}
+
+@media (min-width: 601px) {
+  .form-card {
+    width: calc(100% - 24px);
+    max-width: 370px;
+    padding: 28px 22px 22px 22px;
   }
   .cover-section {
-    min-height: 180px;
+    min-height: 220px;
   }
   .footer-curve {
-    height: 90px;
+    height: 120px;
   }
   .footer-content {
-    padding-bottom: 24px;
+    padding-bottom: 34px;
   }
 }
 </style>

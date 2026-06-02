@@ -6,7 +6,7 @@
         <div class="cover-center">
 <!--          <img :src="crestLogo" class="crest-logo" alt="KRWWF Crest" />-->
           <div class="cover-title">KHANZADA</div>
-          <div class="cover-sub">WELFARE & WORKING FORUM</div>
+          <div class="cover-sub">Rajput Welfare & Waseela Foundation</div>
           <div class="cover-urdu">اتحاد، خدمت، ترقی</div>
         </div>
       </div>

@@ -4,20 +4,20 @@
       <div class="event-title">Upcoming Event</div>
       <a href="/events" class="event-view-all">View All</a>
     </div>
-    <img :src="event.image" alt="Event Image" class="event-image" />
+    <img src="/src/assets/KhanzadaDay-01.jpg" alt="Event Image" class="event-image" />
     <div class="event-details">
       <div class="event-name">{{ event.title }}</div>
       <div class="event-info">
-        <ion-icon name="calendar-outline" class="event-icon" aria-hidden="true"></ion-icon>
+        <ion-icon :icon="calendarOutline" class="event-icon" aria-hidden="true"></ion-icon>
         <span class="event-date">{{ event.date }}</span>
       </div>
       <div class="event-info">
-        <ion-icon name="location-outline" class="event-icon" aria-hidden="true"></ion-icon>
+        <ion-icon :icon="locationOutline" class="event-icon" aria-hidden="true"></ion-icon>
         <span class="event-location">{{ event.location }}</span>
       </div>
     </div>
-    <button class="event-btn" @click="goToLogin">
-      <ion-icon name="lock-closed-outline" class="lock-icon" aria-hidden="true"></ion-icon>
+    <button disabled class="event-btn" @click="goToLogin">
+      <ion-icon :icon="lockClosedOutline" class="lock-icon" aria-hidden="true"></ion-icon>
       Log in to register event
     </button>
   </div>
@@ -27,6 +27,7 @@
 import { DashboardEvent } from "@/types/dashboard";
 import { IonIcon } from '@ionic/vue';
 import { useRouter } from "vue-router";
+import { calendarOutline, locationOutline, lockClosedOutline } from 'ionicons/icons';
 
 const router = useRouter();
 

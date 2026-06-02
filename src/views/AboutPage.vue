@@ -159,14 +159,14 @@ const values = [
 }
 .about-header-title {
   color: #fff;
-  font-size: 1.1rem;
+  font-size: 0.75rem;
   font-weight: 700;
   margin-bottom: 4px;
   line-height: 1.2;
 }
 .about-header-subtitle {
   color: #f9a825;
-  font-size: 0.85rem;
+  font-size: 0.53rem;
   font-weight: 500;
 }
 .about-header-cover {
@@ -411,12 +411,6 @@ const values = [
     width: 44px;
     height: 44px;
     margin-right: 8px;
-  }
-  .about-header-title {
-    font-size: 0.98rem;
-  }
-  .about-header-subtitle {
-    font-size: 0.7rem;
   }
   .about-header-cover {
     width: 90px;

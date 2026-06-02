@@ -2,7 +2,7 @@
   <div class="announcement-card">
     <div class="announcement-header">
       <div class="announcement-title">Recent Announcements</div>
-      <a href="/announcements" class="announcement-view-all">View All</a>
+      <span class="announcement-view-all announcement-view-all--disabled">View All</span>
     </div>
     <div class="announcement-list">
       <div v-for="announcement in announcements" :key="announcement.title" class="announcement-item">
@@ -55,11 +55,20 @@ defineProps<{ announcements: (DashboardAnnouncement & { color: string })[] }>();
   color: #003d1f;
 }
 
+
 .announcement-view-all {
   font-size: 14px;
   color: #007b83;
   text-decoration: none;
   font-weight: bold;
+  cursor: pointer;
+}
+
+.announcement-view-all--disabled {
+  color: #b0b0b0;
+  cursor: not-allowed;
+  pointer-events: none;
+  text-decoration: none;
 }
 
 .announcement-view-all:hover {

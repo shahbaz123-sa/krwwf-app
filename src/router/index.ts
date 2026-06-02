@@ -7,6 +7,7 @@ import EditProfilePage from '@/views/EditProfilePage.vue';
 import LoginPage from '@/views/LoginPage.vue';
 import RegisterPage from '@/views/RegisterPage.vue';
 import AboutPage from '@/views/AboutPage.vue';
+import EventsPage from '@/views/EventsPage.vue';
 import { isAuthenticated } from '@/services/auth';
 
 const routes: Array<RouteRecordRaw> = [
@@ -55,7 +56,24 @@ const routes: Array<RouteRecordRaw> = [
     name: 'About',
     component: AboutPage,
     meta: { guestOnly: true },
-  }
+  },
+  {
+    path: '/events',
+    name: 'Events',
+    component: EventsPage,
+    meta: { guestOnly: true },
+  },
+   {
+     path: '/ai',
+     name: 'AI',
+     component: () => import('@/views/AiPage.vue'),
+     meta: { guestOnly: true },
+   },
+   {
+     path: '/contact',
+     name: 'Contact',
+     component: () => import('@/views/ContactPage.vue'),
+   }
 ]
 
 const router = createRouter({

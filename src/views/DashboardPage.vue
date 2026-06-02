@@ -2,7 +2,6 @@
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { IonPage, IonContent } from '@ionic/vue';
-import AppNavbar from "@/components/AppNavbar.vue";
 import DashboardHeader from "@/components/DashboardHeader.vue";
 import { fetchCurrentUser, logout, type AuthUser } from "@/services/auth";
 import { useDashboardData } from "@/features/dashboard/dashboardService";
@@ -40,7 +39,6 @@ function goToCreateAccount() {
 
 <template>
   <ion-page :id="pageContentId">
-    <AppNavbar title="Dashboard" :content-id="pageContentId" />
     <ion-content class="dashboard-content">
       <DashboardHeader :user="user" :loading="loading" @login="goToLogin" @create-account="goToCreateAccount" />
       <div class="dashboard-main">
@@ -61,7 +59,7 @@ function goToCreateAccount() {
         <div class="section-content">
           <h2>Connect. Collaborate. Empower.</h2>
           <p>Let's build a stronger Khanzada community together.</p>
-          <a @click.prevent="goToCreateAccount" href="#" class="btn">Join Us Today →</a>
+          <button disabled @click.prevent="goToCreateAccount" class="btn">Join Us Today →</button>
         </div>
         <div class="section-logo">
           <img src="/src/assets/logo.png" alt="Logo">
