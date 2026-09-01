@@ -47,7 +47,7 @@ const navItems = [
   },
   {
     name: "About",
-    path: "/about",
+    path: "/",
     icon: {
       active: informationCircle,
       inactive: informationCircleOutline,
@@ -81,18 +81,16 @@ const router = useRouter();
 const ionRouter = useIonRouter();
 const activePath = computed(() => router.currentRoute.value.path);
 
-function isActiveTab(item: any) {
-  // For About tab, match /about and any subroute
-  if (item.path === '/about') {
-    return activePath.value === '/about' || activePath.value.startsWith('/about/');
-  }
+function isActiveTab(item: { path: string }) {
   return activePath.value === item.path;
 }
 
 function navigateTo(path: string) {
-  if (router.currentRoute.value.path !== path) {
-    ionRouter.navigate(path, "forward", "replace");
+  if (router.currentRoute.value.path === path) {
+    return;
   }
+
+  ionRouter.navigate(path, "forward", "replace");
 }
 </script>
 

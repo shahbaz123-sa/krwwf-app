@@ -1,31 +1,31 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
 import DashboardPage from '@/views/DashboardPage.vue';
+import AboutPage from '@/views/AboutPage.vue';
 import HomePage from '@/views/HomePage.vue';
 import ProfilePage from '@/views/ProfilePage.vue';
 import EditProfilePage from '@/views/EditProfilePage.vue';
 import LoginPage from '@/views/LoginPage.vue';
 import RegisterPage from '@/views/RegisterPage.vue';
-import AboutPage from '@/views/AboutPage.vue';
 import EventsPage from '@/views/EventsPage.vue';
 import { isAuthenticated } from '@/services/auth';
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/dashboard'
+    name: 'About',
+    component: AboutPage,
+  },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: DashboardPage,
   },
   {
     path: '/home',
     name: 'Home',
     component: HomePage,
     meta: { guestOnly: true },
-  },
-  {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: DashboardPage,
-    // allow guests to view the dashboard as the app landing page; specific actions still require auth
   },
   {
     path: '/profile',
@@ -53,9 +53,7 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/about',
-    name: 'About',
-    component: AboutPage,
-    meta: { guestOnly: true },
+    redirect: '/',
   },
   {
     path: '/events',

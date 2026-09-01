@@ -75,6 +75,10 @@ export function isAuthenticated(): boolean {
   return Boolean(getToken());
 }
 
+export function clearSession(): void {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
 export async function register(payload: RegisterPayload): Promise<AuthUser> {
   const formData = new FormData();
   formData.append("name", payload.name);
@@ -134,10 +138,17 @@ export async function uploadProfilePicture(file: File): Promise<AuthUser> {
 }
 
 export async function logout(): Promise<void> {
+  const token = getToken();
+  clearSession();
+
+  if (!token) {
+    return;
+  }
+
   try {
     await api.post("/auth/logout");
-  } finally {
-    localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    // Token may already be invalid/expired; local session is already cleared.
   }
 }
 

@@ -3,10 +3,9 @@ import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { IonPage, IonContent } from '@ionic/vue';
 import DashboardHeader from "@/components/DashboardHeader.vue";
-import { fetchCurrentUser, logout, type AuthUser } from "@/services/auth";
+import { clearSession, fetchCurrentUser, isAuthenticated, type AuthUser } from "@/services/auth";
 import { useDashboardData } from "@/features/dashboard/dashboardService";
 import StatCards from "@/features/dashboard/StatCards.vue";
-import AboutSection from "@/features/dashboard/AboutSection.vue";
 import EventCard from "@/features/dashboard/EventCard.vue";
 import AnnouncementCard from "@/features/dashboard/AnnouncementCard.vue";
 
@@ -18,10 +17,16 @@ const loading = ref(true);
 const { stats, event, announcements } = useDashboardData();
 
 onMounted(async () => {
+  if (!isAuthenticated()) {
+    loading.value = false;
+    return;
+  }
+
   try {
     user.value = await fetchCurrentUser();
   } catch {
-    try { await logout(); } catch { /* ignore logout errors */ }
+    clearSession();
+    user.value = null;
   } finally {
     loading.value = false;
   }
@@ -43,7 +48,6 @@ function goToCreateAccount() {
       <DashboardHeader :user="user" :loading="loading" @login="goToLogin" @create-account="goToCreateAccount" />
       <div class="dashboard-main">
         <StatCards :stats="stats" />
-        <AboutSection />
         <div class="event-announcement-row-below">
           <div class="event-announcement-row styled">
             <div class="event-card-outer">
